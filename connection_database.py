@@ -18,19 +18,15 @@ def executar_consulta(query):
     conexao_mysql = conectar_mysql()
     try:
         if conexao_mysql.is_connected():
-            # Cria um cursor para executar a consulta
             cursor = conexao_mysql.cursor(dictionary=True)
-
-            # Executa a consulta
             cursor.execute(query)
-
-            # Obtém os resultados (se houver)
+            conexao_mysql.commit()
             resultados = cursor.fetchall()
-
-            return resultados
+            print(resultados)
+            return resultados if resultados else "Comando executado com sucesso!"
 
     except mysql.connector.Error as erro:
-        print(f"Erro ao executar a consulta: {erro}")
+        return f"Erro ao executar a consulta: {erro}"
 
     finally:
         if conexao_mysql.is_connected():
