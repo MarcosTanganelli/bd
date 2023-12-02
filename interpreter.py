@@ -1,4 +1,4 @@
-
+import execute_cmd
 def parse_query(query):
     semantica = query.lower().split()
     query_type = semantica[0].lower()
@@ -30,51 +30,51 @@ def parse_select(semantica):
     order_by_index = semantica.index("ordene") if "ordene" in semantica else None
     inner_join_index = semantica.index("junte") if "junte" in semantica else None
     where_index = semantica.index("onde") if "onde" in semantica else None
-    condition = semantica[where_index + 1:order_by_index] if where_index is not None else None
 
+    condition = semantica[where_index + 1:order_by_index] if where_index is not None else None
     columns = semantica[columns_start_index:columns_end_index]
     table = semantica[from_index + 1]
     order_by_columns = semantica[order_by_index + 2:] if order_by_index is not None else None
 
-    cmd = f"SELECT {' '.join(columns)} FROM {''.join(table) if(table[1]) else table}"
-
+    x = f"SELECT {' '.join(columns)} FROM {''.join(table) if(table[1]) else table}"
+    join_table = None
     if inner_join_index is not None:
         join_table_index = semantica.index("com")
-        join_table = semantica[join_table_index + 1]
-        on_index = semantica.index("em") + 1
-        on_condition = semantica[on_index:where_index]
-        on_condition = [s.replace("e", "AND") if s == "e" else s for s in on_condition]
-        on_condition = [s.replace("ou", "OR") if s == "ou" else s for s in on_condition]
-        inner = f"\nJOIN {''.join(join_table) if(join_table[1]) else join_table} ON {' '.join(on_condition)}"
-        cmd = cmd + inner
+        join_table = semantica[join_table_index+1 :where_index]
+        join_table.remove("em")
 
-    if condition is not None:      
-        condition = [s.replace("e", "AND") if s == "e" else s for s in condition]
-        condition = [s.replace("ou", "OR") if s == "ou" else s for s in condition]
-        where = f"\nWHERE {' '.join(condition)}"
-        cmd = cmd + where
 
-    if order_by_index is not None:
-        order_by = f"\nORDER BY {''.join(order_by_columns) if(order_by_columns[1]) else order_by_columns}"
-        cmd = cmd + order_by
-    print(cmd)
+    cmd = {'func':'SELECT', 'tabela':table, 'colunas': columns,'condition':condition,
+            'inner join':join_table,  'order by':order_by_columns }
+
     return cmd
    
           
 def parse_insert(semantica):
+    print(semantica)
     if "em" not in semantica or "valores" not in semantica:
         raise ValueError("Comando INSERT incompleto")
     
+    columns = None
     into_index = semantica.index("em")
     table = semantica[into_index + 1]
 
     values_start_index = semantica.index("valores") + 1
     columns_start_index = semantica.index("em") + 2
-
+    
     columns = semantica[columns_start_index:values_start_index - 1]
     values = semantica[values_start_index:]
-    cmd = f"INSERT INTO {table} {''.join(columns) if(columns[1]) else columns} \nVALUES {''.join(values) if(values[1]) else values}"
-    print(cmd)
+    values = values[0].replace('(', '').replace(')', '').split(',')
+    if columns
+        columns = columns[0].replace('(', '').replace(')', '').split(',')
+
+    if columns:
+        resultado = {f" {columns[i]} : {values[i]}" for i in range(len(columns))}
+    else:
+        resultado = values
+    cmd = {'func':'INSERT', 'tabela':table, 'values': resultado}
+    # # novos_dados = {'emp_no': '10005', 'dept_no': 'd005', 'from_date':'1986-06-26','to_date':'9999-01-01'}
+    # novos_dados = ['10006', 'd005', '1986-06-26', '9999-01-01']
     return cmd
 
 def parse_update(semantica):
@@ -87,8 +87,8 @@ def parse_update(semantica):
 
     set_clause = semantica[set_index:where_index]
     condition = semantica[where_index + 1:]
-
-    cmd = f"UPDATE {table} SET {''.join(set_clause) if(set_clause[1]) else set_clause} WHERE {''.join(condition) if(condition[1]) else condition}"
+    dicionario_condicao = {condition[0]: (condition[1], condition[2])}
+    cmd = {'func':'UPDATE', 'tabela':table, 'set': set_clause, 'condition': dicionario_condicao}
     return cmd
 
 def parse_delete(semantica):
@@ -99,5 +99,7 @@ def parse_delete(semantica):
     table = semantica[from_index + 1]
     where_index = semantica.index("onde") if "onde" in semantica else None
     condition = semantica[where_index + 1:] if where_index is not None else None
-    cmd = f"DELETE FROM {table} \nwhere {''.join(condition) if(condition[1]) else condition}"
+    if condition:
+        dicionario_condicao = {condition[0]: (condition[1], condition[2])}
+    cmd = {'func':'DELETE', 'tabela':table, 'condition': dicionario_condicao}
     return cmd
