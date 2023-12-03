@@ -37,7 +37,7 @@ def deletar_dados(end, condicoes):
         # Itera sobre as linhas e mantém apenas aquelas que atendem a todas as condições
         for linha in reader:
             atende_todas_condicoes = all(
-                coluna_valor(linha[col], operador, valor) for col, (operador, valor) in condicoes.items()
+                coluna_valor(linha[col], operador, valor) for col, operador, valor in condicoes
             )
             if not atende_todas_condicoes:
                 linhas_mantidas.append(linha)
@@ -47,9 +47,8 @@ def deletar_dados(end, condicoes):
         writer = csv.DictWriter(file, fieldnames=linhas_mantidas[0])
         writer.writeheader()
         writer.writerows(linhas_mantidas[1:])
-
-    # Imprime o resultado
     print(f'Dados excluídos com base nas condições: {condicoes}')
+
 
 # # # Exemplo de uso delete
 # end = r"E:\Nova pasta\Faculdade\BancoDeDados\trab\dados_salvos\employees\dept_emp.csv"
@@ -59,20 +58,17 @@ def deletar_dados(end, condicoes):
 
 
 
-def inserir_dados_x(end, novos_dados):
-    # Endereço do arquivo
-    arquivo_csv = end
-
+def inserir_dados(end, novos_dados):    # Endereço do arquivo
     # Verifica se o arquivo já existe
     arquivo_existe = False
     try:
-        with open(arquivo_csv, 'r'):
+        with open(end, 'r'):
             arquivo_existe = True
     except FileNotFoundError:
         pass
 
     # Adiciona os novos dados ao arquivo CSV
-    with open(arquivo_csv, mode='a', newline='') as file:
+    with open(end, mode='a', newline='') as file:
         if isinstance(novos_dados, dict):
             writer = csv.DictWriter(file, fieldnames=novos_dados.keys())
             writer.writerow(novos_dados)
@@ -83,36 +79,36 @@ def inserir_dados_x(end, novos_dados):
     # Imprime o resultado
     print(f'Dados inseridos com sucesso: {novos_dados}')
 
-def inserir_dados(end, novos_dados): #versão dicionario
-    # Endereço do arquivo
-    arquivo_csv = end
+# def inserir_dados(end, colunas=None, novos_dados): #versão dicionario
+#     # Endereço do arquivo
+#     arquivo_csv = end
 
-    # Verifica se o arquivo já existe
-    arquivo_existe = False
-    try:
-        with open(arquivo_csv, 'r') as file:
-            leitor_csv = csv.reader(file)
-            # Lê a primeira linha para obter as colunas
-            colunas = next(leitor_csv)
-            arquivo_existe = True
-    except FileNotFoundError:
-        pass
+#     # Verifica se o arquivo já existe
+#     arquivo_existe = False
+#     try:
+#         with open(arquivo_csv, 'r') as file:
+#             leitor_csv = csv.reader(file)
+#             # Lê a primeira linha para obter as colunas
+#             colunas = next(leitor_csv)
+#             arquivo_existe = True
+#     except FileNotFoundError:
+#         pass
 
-    # Adiciona os novos dados ao arquivo CSV
-    with open(arquivo_csv, mode='a', newline='') as file:
-        if not arquivo_existe:
-            # Se o arquivo não existia, escreve as colunas na primeira linha
-            writer = csv.writer(file)
-            writer.writerow(novos_dados.keys())
+#     # Adiciona os novos dados ao arquivo CSV
+#     with open(arquivo_csv, mode='a', newline='') as file:
+#         if not arquivo_existe:
+#             # Se o arquivo não existia, escreve as colunas na primeira linha
+#             writer = csv.writer(file)
+#             writer.writerow(novos_dados.keys())
 
-        if isinstance(novos_dados, dict):
-            writer = csv.DictWriter(file, fieldnames=colunas)
-            writer.writerow({col: novos_dados[col] for col in colunas})
-        elif isinstance(novos_dados, list):
-            writer = csv.writer(file)
-            writer.writerow([novos_dados[col] for col in colunas])
+#         if isinstance(novos_dados, dict):
+#             writer = csv.DictWriter(file, fieldnames=colunas)
+#             writer.writerow({col: novos_dados[col] for col in colunas})
+#         elif isinstance(novos_dados, list):
+#             writer = csv.writer(file)
+#             writer.writerow([novos_dados[col] for col in colunas])
 
-    print(f'Dados inseridos com sucesso: {novos_dados}')
+#     print(f'Dados inseridos com sucesso: {novos_dados}')
 
 # Exemplo de uso
 # end = r"E:\Nova pasta\Faculdade\BancoDeDados\trab\dados_salvos\employees\dept_emp.csv"
@@ -128,6 +124,7 @@ def inserir_dados(end, novos_dados): #versão dicionario
 
 
 def atualizar_dados(end, condicoes, novos_dados):
+    print(end, condicoes, novos_dados)
     # Endereço do arquivo
     arquivo_csv = end
 
@@ -143,11 +140,11 @@ def atualizar_dados(end, condicoes, novos_dados):
         # Itera sobre as linhas e atualiza aquelas que atendem a todas as condições
         for linha in reader:
             atende_todas_condicoes = all(
-                coluna_valor(linha[col], operador, valor) for col, (operador, valor) in condicoes.items()
+                coluna_valor(linha[col], operador, valor) for col, operador, valor in condicoes
             )
             if atende_todas_condicoes:
                 # Atualiza a linha com os novos dados
-                linha.update(novos_dados)
+                linha[novos_dados[0]] = novos_dados[2]
             linhas_atualizadas.append(linha)
 
     # Escreve as linhas atualizadas de volta ao arquivo CSV
@@ -190,7 +187,7 @@ def coluna_valor(valor, operador, alvo):
 
 
 
-def selecionar_dados(end, or_condition ,condicoes=None, colunas=None):
+def selecionar_dados(end, or_condition, condicoes=None, colunas=None):
     # Endereço do arquivo
     arquivo_csv = end
 
@@ -206,11 +203,11 @@ def selecionar_dados(end, or_condition ,condicoes=None, colunas=None):
         else:
             linhas_selecionadas.append(colunas)
 
-        # Itera sobre as linhas e seleciona aquelas que atendem a todas as condições (se existirem)
+        # Itera sobre as linhas e seleciona aquelas que atendem às condições
         if not or_condition:
             for linha in reader:
                 atende_todas_condicoes = condicoes is None or all(
-                    coluna_valor(linha[col], operador, valor) for col   , (operador, valor) in condicoes.items()
+                    coluna_valor(linha[col], operador, valor) for col, operador, valor in condicoes
                 )
                 if atende_todas_condicoes:
                     if colunas is None:
@@ -221,17 +218,18 @@ def selecionar_dados(end, or_condition ,condicoes=None, colunas=None):
         else:
             for linha in reader:
                 atende_pelo_menos_uma_condicao = condicoes is None or any(
-                coluna_valor(linha[col], operador, valor) for col, (operador, valor) in condicoes.items()
-            )
+                    coluna_valor(linha[col], operador, valor) for col, operador, valor in condicoes
+                )
                 if atende_pelo_menos_uma_condicao:
                     if colunas is None:
                         linhas_selecionadas.append(linha)
                     else:
                         linha_selecionada = {col: linha[col] for col in colunas}
-                        linhas_selecionadas.append(linha_selecionada)    
-        # Imprime o resultado
+                        linhas_selecionadas.append(linha_selecionada)
+
+    # Imprime o resultado
     print(f'Dados selecionados com base nas condições: {condicoes}')
-    for linha_selecionada in linhas_selecionadas:
+    for linha_selecionada in linhas_selecionadas[1:]:
         print(linha_selecionada)
 
 # Função auxiliar para avaliar as condições
