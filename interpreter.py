@@ -28,7 +28,7 @@ def parse_select(bd, semantica):
 
     columns_start_index = select_index + 1
     columns_end_index = from_index
-
+    # print(semantica)
     order_by_index = semantica.index("ordene") if "ordene" in semantica else None
     inner_join_index = semantica.index("junte") if "junte" in semantica else None
     where_index = semantica.index("onde") if "onde" in semantica else None
@@ -37,33 +37,39 @@ def parse_select(bd, semantica):
     columns = semantica[columns_start_index:columns_end_index]
     table = semantica[from_index + 1]
     order_by_columns = semantica[order_by_index + 2:] if order_by_index is not None else None
+    # print(order_by_columns)
     todas_condicoes = []
     operadores_logicos = ["e", "ou"]
     condicao_atual = []
+    if len(todas_condicoes) == 0:
+        todas_condicoes = None  
+    else:
+        for token in condition:
+            if token.lower() in operadores_logicos:
+                todas_condicoes.append(condicao_atual)
+                condicao_atual = [token]
+            else:
+                condicao_atual.append(token)
 
-    for token in condition:
-        if token.lower() in operadores_logicos:
+        if condicao_atual:
             todas_condicoes.append(condicao_atual)
-            condicao_atual = [token]
-        else:
-            condicao_atual.append(token)
 
-    if condicao_atual:
-        todas_condicoes.append(condicao_atual)
-    # join_table = None
-    # if inner_join_index is not None:
-    #     join_table_index = semantica.index("com")
-    #     join_table = semantica[join_table_index+1 :where_index]
-    #     join_table.remove("em")
-    print(todas_condicoes)
-    end = "./dados_salvos/" + bd + "/" + table + ".csv"  
-    ec.selecionar_dados(end, columns, todas_condicoes)
+    # print(todas_condicoes)
+    join_table = None
+    if inner_join_index is not None:
+        join_table_index = semantica.index("com")
+        join_table = semantica[join_table_index+1 :where_index]
+        join_table.remove("em")
+    # print(join_table)
+    
+    end = "./dados_salvos/" + bd + "/" + table + ".csv"
+    return ec.selecionar_dados(end, columns, todas_condicoes, None, join_table, order_by_columns)
     # cmd = {'func':'SELECT', 'tabela':table, 'colunas': columns,'condition':condition,
     #         'inner join':join_table,  'order by':order_by_columns }
 
-# bd = "employees"
-# query_select = "selecione emp_no, dept_no da dept_emp onde emp_no == 10001"
-# parse_query(bd, query_select)
+bd = "employees"
+query_select = "selecione emp_no, dept_no da dept_emp junte com tabela em emp_no = emp_no"
+parse_query(bd, query_select)
           
 def parse_insert(bd, semantica):
     print(semantica)
@@ -92,10 +98,9 @@ def parse_insert(bd, semantica):
     PATH = "./dados_salvos/" + bd + "/" + table + ".csv"  
     ec.inserir_dados(PATH,  values)
 
-bd = "employees"
-query_insert = "Insira em dept_emp (emp_no,dept_no,from_date,to_date) valores (999,'1','1986-06-26','9999-01-01')"
-parse_query(bd, query_insert)
-
+# bd = "employees"
+# query_insert = "Insira em dept_emp (emp_no,dept_no,from_date,to_date) valores (999,'1','1986-06-26','9999-01-01')"
+# parse_query(bd, query_insert)
 
 def parse_update(bd, semantica):
     if "atualize" not in semantica or "defina" not in semantica or "onde" not in semantica:
@@ -107,7 +112,7 @@ def parse_update(bd, semantica):
 
     set_clause = semantica[set_index:where_index]
     condition = semantica[where_index + 1:]
-    print(set_clause)
+    #print(set_clause)
     PATH = "./dados_salvos/" + bd + "/" + table + ".csv"  
     todas_condicoes = []
 
@@ -116,16 +121,20 @@ def parse_update(bd, semantica):
     condicao_atual = []
 
     for token in condition:
+        print(token)
         if token.lower() in operadores_logicos:
             todas_condicoes.append(condicao_atual)
             condicao_atual = [token]
+            todas_condicoes.append(condicao_atual)
+            condicao_atual = []            
         else:
             condicao_atual.append(token)
 
     if condicao_atual:
         todas_condicoes.append(condicao_atual)
+    print(todas_condicoes)  
     # print(todas_condicoes)
-    ec.atualizar_dados(PATH, todas_condicoes, set_clause)
+    return ec.atualizar_dados(PATH, todas_condicoes, set_clause)
     # return cmd
 
 # bd = "employees"
@@ -147,20 +156,24 @@ def parse_delete(bd, semantica):
     condicao_atual = []
 
     for token in condition:
+        print(token)
         if token.lower() in operadores_logicos:
             todas_condicoes.append(condicao_atual)
             condicao_atual = [token]
+            todas_condicoes.append(condicao_atual)
+            condicao_atual = []            
         else:
             condicao_atual.append(token)
 
     if condicao_atual:
         todas_condicoes.append(condicao_atual)
+    print(todas_condicoes)
 
     # print(condition)
     # print(todas_condicoes)
-
+    
     PATH = "./dados_salvos/" + bd + "/" + table + ".csv"  
-    ec.deletar_dados(PATH, todas_condicoes)
+    return ec.deletar_dados(PATH, todas_condicoes)
 
 # bd = "employees"
 # query_delete = "exclua de dept_emp onde emp_no == 10001"
