@@ -39,13 +39,9 @@ def window():
         title="Selecione um arquivo CSV para salvar no sistema",
         filetypes=tipos_de_arquivo
     )
-        # print(f"PATH:{arquivo_selecionado.name}")
-        # Verifique se o usuário selecionou algum arquivo
         if arquivo_selecionado:
-            # Obtenha apenas o nome do arquivo a partir do caminho completo
             nome_do_arquivo = os.path.basename(arquivo_selecionado.name)
 
-            # print("Nome do arquivo selecionado:", nome_do_arquivo)
         cdb.save_csv_system(arquivo_selecionado.name, nome_do_arquivo, bd)
 
     janela = tk.Tk()

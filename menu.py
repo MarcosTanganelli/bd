@@ -9,10 +9,11 @@ def menu():
     button_import = tk.Button(text="Importação",command=lambda:importacao.window())
     button_parser = tk.Button(text="Comandos",command=lambda:comandos.window())
     
-
     button_import.pack(pady=10)
     button_parser.pack(pady=10)
 
     janela.mainloop()
 
 menu()
+
+# selecione emp_no,dept_no da dept_manager onde emp_no == 110022
